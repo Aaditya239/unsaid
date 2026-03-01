@@ -1,0 +1,22 @@
+{
+  "name": "unsaid",
+  "version": "1.0.0",
+  "description": "UNSAID - Secure Communication Platform",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build": "cd server && npm run build && cd ../client && npm run build",
+    "db:migrate": "cd server && npm run prisma:migrate",
+    "db:studio": "cd server && npm run prisma:studio"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

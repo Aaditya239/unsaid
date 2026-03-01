@@ -1,0 +1,619 @@
+// ============================================
+// UNSAID - Prisma Schema
+// ============================================
+// This schema defines the database structure for authentication.
+// Best practices implemented:
+// - UUID for primary keys (more secure than auto-increment)
+// - Email uniqueness constraint
+// - Timestamps for auditing
+// - Refresh token tracking for secure session management
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model with all necessary fields for authentication
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  password        String    // Hashed password (bcrypt)
+  
+  // Profile fields (extend as needed)
+  firstName       String?
+  lastName        String?
+  
+  // Security fields
+  isEmailVerified Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  
+  // Password reset fields
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+  
+  // Account lockout fields (for brute force protection)
+  failedLoginAttempts  Int      @default(0)
+  lockoutUntil         DateTime?
+  
+  // Session management
+  refreshTokens   RefreshToken[]
+  
+  // Journal entries
+  journalEntries  JournalEntry[]
+  
+  // Mood entries
+  moodEntries     MoodEntry[]
+
+  
+  // AI Conversations
+  aiConversations AIConversation[]
+
+    // Calm sessions
+  calmSessions    CalmSession[]
+  
+  // Tasks
+  tasks           Task[]
+  taskAnalytics   TaskAnalytics[]
+  youtubeFavorites YouTubeFavorite[]
+  
+  // Daily reflection cache
+  dailyReflections DailyReflection[]
+  
+  // Notifications
+  notificationPreferences NotificationPreference?
+  pushSubscriptions       PushSubscription[]
+  notifications           Notification[]
+  emotionalGrowths        EmotionalGrowth[]
+  emotionalCapacityDays   EmotionalCapacityDay[]
+  
+  // Level 3 Intelligence
+  productivityInsightsCache String?   @db.Text
+  moodTaskCorrelationData   String?   @db.Text
+  
+  // Habit Retention
+  reflectionStreak          Int       @default(0)
+  lastReflectionAt          DateTime?
+  xp                        Int       @default(0)
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastLoginAt     DateTime?
+  
+  // Indexes for performance
+  @@index([email])
+  @@index([createdAt])
+  
+  @@map("users") // Table name in database
+}
+
+// ============================================
+// Journal Entry Model
+// ============================================
+// Private journal entries tied to users.
+// Each entry is owned by exactly one user.
+// Includes emotion tracking for mood journaling.
+// ============================================
+
+// Enum for predefined emotions (optional field)
+enum Emotion {
+  HAPPY
+  SAD
+  ANXIOUS
+  CALM
+  ANGRY
+  GRATEFUL
+  HOPEFUL
+  CONFUSED
+  EXCITED
+  NEUTRAL
+  TIRED
+}
+
+enum ReflectionMode {
+  QUICK
+  GUIDED
+  DEEP
+  CHAT
+}
+
+model JournalEntry {
+  id          String    @id @default(uuid())
+  
+  // Content fields
+  title       String?   @db.VarChar(255) // Optional title
+  content     String    @db.Text         // Required journal content
+  
+  // Media attachments (optional)
+  imageUrl    String?   @db.Text
+  
+  // Music attachment (optional)
+  musicTitle     String?   @db.VarChar(255)
+  musicArtist    String?   @db.VarChar(255)
+  musicThumbnail String?   @db.Text
+  musicVideoId   String?   @db.VarChar(100)
+  musicUrl       String?   @db.Text
+  musicPlatform  String?   @default("YOUTUBE") @db.VarChar(50)
+  
+  // Reflection fields
+  emotion     Emotion?
+  intensity   Int?      @db.SmallInt  // 1-10 scale
+  aiResponse  String?   @db.Text      // AI reflective response
+  mode        ReflectionMode @default(DEEP)
+  tags        String[]  @default([])
+  emotionalTrendSnapshot Json?        // Snapshot of trend at time of entry
+
+  // MCQ MCQ Context Fields
+  affectedBy  String?   @db.VarChar(100)
+  energyLevel String?   @db.VarChar(50)
+  drainedBy   String[]  @default([])
+  need        String?   @db.VarChar(100)
+
+  // Pinned ("Meaningful Moments")
+  isPinned    Boolean   @default(false)
+
+  // User relationship - every journal belongs to exactly one user
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Indexes for performance
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([emotion])
+  @@index([userId, isPinned])
+  @@index([energyLevel])
+  
+  @@map("journal_entries")
+}
+
+// Refresh token model for secure session management
+// Storing refresh tokens allows:
+// - Multiple device sessions
+// - Selective session revocation
+// - Token rotation for added security
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Device tracking for session management
+  deviceInfo  String?  // Store device/browser info
+  ipAddress   String?
+  
+  // Token lifecycle
+  expiresAt   DateTime
+  isRevoked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  
+  @@map("refresh_tokens")
+}
+
+// ============================================
+// Mood Entry Model
+// ============================================
+// Tracks user mood over time for emotional analytics.
+// Includes intensity level (1-10) for granular tracking.
+// ============================================
+
+// Predefined moods for consistent categorization
+enum Mood {
+  HAPPY
+  SAD
+  ANGRY
+  CALM
+  ANXIOUS
+  EXCITED
+  TIRED
+  STRESSED
+  GRATEFUL
+  NEUTRAL
+  CONFUSED
+}
+
+enum EntryType {
+  MORNING
+  NIGHT
+  MANUAL
+}
+
+model MoodEntry {
+  id          String    @id @default(uuid())
+  
+  // Mood data
+  mood        Mood                    // Required mood selection
+  intensity   Int       @db.SmallInt  // 1-10 scale
+  note        String?   @db.VarChar(500) // Optional note (max 500 chars)
+  
+  // New Emotional Companion fields
+  contextTag      String?   @db.VarChar(100)
+  aiInsightShown  Boolean   @default(false)
+  entryType       EntryType @default(MANUAL)
+
+  // User relationship
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  
+  // Indexes for performance
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([mood])
+  
+  @@map("mood_entries")
+}
+
+// ============================================
+// AI Conversation Model
+// ============================================
+// Stores AI emotional support conversations.
+// Maintains context for personalized responses.
+// ============================================
+
+model AIConversation {
+  id          String    @id @default(uuid())
+  
+  // Conversation content
+  message     String    @db.Text      // User's message
+  response    String    @db.Text      // AI's response
+  
+  // Metadata
+  contextUsed Boolean   @default(false) // Whether mood/journal context was used
+  
+  // User relationship
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  
+  // Indexes for performance
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  
+  @@map("ai_conversations")
+}
+
+// ============================================
+// Daily Reflection Model
+// ============================================
+// Caches daily reflection prompts per user.
+// Prevents regenerating prompts throughout the day.
+// ============================================
+
+model DailyReflection {
+  id              String    @id @default(uuid())
+  
+  // Reflection content
+  question        String    @db.Text    // Daily reflection question
+  encouragement   String    @db.Text    // Daily encouragement message
+  
+  // Date tracking (for once-per-day caching)
+  date            DateTime  @db.Date    // The date this reflection is for
+  
+  // User relationship
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  
+  // Unique constraint: one reflection per user per day
+  @@unique([userId, date])
+  
+  // Indexes for performance
+  @@index([userId])
+  @@index([date])
+  
+  @@map("daily_reflections")
+}
+
+// ============================================
+// Calm Session Model
+// ============================================
+// Stores completed calm space sessions for analytics.
+// Tracks sound, duration, and focus mode usage.
+// ============================================
+
+model CalmSession {
+  id           String    @id @default(uuid())
+  
+  // Session data
+  sound        String    @db.VarChar(100)   // Sound that was played
+  duration     Int                          // Duration in minutes
+  focusMode    Boolean   @default(false)    // Whether it was a focus session
+  completed    Boolean   @default(true)     // Whether session completed naturally
+  
+  // User relationship
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Timestamps
+  createdAt    DateTime  @default(now())
+  
+  // Indexes for performance
+  @@index([userId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  
+  @@map("calm_sessions")
+}
+
+// ============================================
+// Task Management Model
+// ============================================
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskCategory {
+  WORK
+  HEALTH
+  PERSONAL
+  STUDY
+  FINANCE
+  OTHER
+}
+
+enum EnergyLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RecurringType {
+  NONE
+  DAILY
+  WEEKLY
+  CUSTOM
+}
+
+model Task {
+  id                  String        @id @default(uuid())
+  userId              String
+  title               String        @db.VarChar(255)
+  description         String?       @db.Text
+  priority            TaskPriority  @default(MEDIUM)
+  category            TaskCategory  @default(OTHER)
+  energyLevel         EnergyLevel   @default(MEDIUM)
+  energyLevelRequired EnergyLevel   @default(MEDIUM)
+  emotionalWeight     Int           @default(20)
+  estimatedMinutes    Int           @default(25)
+  dueDate             DateTime?
+  taskDate            String?       // Stored as YYYY-MM-DD, no timezone logic
+  reminderTime        DateTime?
+  recurring           RecurringType @default(NONE)
+  isCompleted         Boolean       @default(false)
+  
+  orderIndex          Int           @default(0)
+  focusMinutes        Int           @default(0)
+  focusSessionsCount  Int           @default(0)
+  streakDays          Int           @default(0)
+  
+  // Emotional Intelligence Extensions
+  emotionalFeedback   String?       // ENERGIZING, NEUTRAL, DRAINING
+  completionFeeling   String?       // LIGHTER, NEUTRAL, DRAINING
+  breakdownGenerated  Boolean       @default(false)
+  burnoutFlag         Boolean       @default(false)
+
+  // Productivity Intelligence Extensions
+  scheduledStartTime  String?       // HH:MM local time (for chronotype tracking)
+  resistanceFlag      Boolean       @default(false)  // untouched 72+ hours
+  resistanceFlaggedAt DateTime?
+  
+  parentTaskId        String?
+  parentTask          Task?         @relation("SubTasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subTasks            Task[]        @relation("SubTasks")
+  
+  // Link to CalmSession for Focus Mode integrations
+  linkedCalmSessionId String?
+  
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  completedAt         DateTime?
+  
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([dueDate])
+  @@index([isCompleted])
+  @@index([taskDate])
+  @@map("tasks")
+}
+
+// ============================================
+// Daily Emotional Capacity Model
+// ============================================
+// Tracks daily emotional execution capacity.
+// One row per user per day, reset by date key.
+// ============================================
+
+model EmotionalCapacityDay {
+  id                       String   @id @default(uuid())
+  userId                   String
+  date                     String   // YYYY-MM-DD
+  capacity                 Int      @default(100)
+  energyUsed               Int      @default(0)
+  gentleModeActive         Boolean  @default(false)
+  consistencyBonusAwarded  Boolean  @default(false)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@map("emotional_capacity_days")
+}
+
+// ============================================
+// Task Analytics Model
+// ============================================
+// Stores per-day computed intelligence scores.
+// One row per user per day — upserted nightly by cron.
+// ============================================
+
+model TaskAnalytics {
+  id                   String   @id @default(uuid())
+  userId               String
+  date                 String   // YYYY-MM-DD (timezone-safe, no UTC drift)
+
+  // Cognitive Load
+  dailyLoadScore       Float    @default(0)        // 0–100
+  loadLabel            String   @default("Balanced") // Balanced / Heavy / Overloaded
+  heavyDayStreak       Int      @default(0)        // consecutive heavy-load days
+
+  // Focus
+  focusScore           Float    @default(0)        // 0–100 composite
+  focusMinutesTotal    Int      @default(0)
+  tasksCompleted       Int      @default(0)
+  tasksPlanned         Int      @default(0)
+
+  // Emotional Correlation
+  moodCorrelationScore Float    @default(0)
+  dominantMoodOnDay    String?  // Mood enum string for that day
+  moodIntensityAvg     Float    @default(0)
+
+  // Weekly Letter (cached on the Saturday row)
+  weeklyLetterContent  String?  @db.Text
+  weeklyLetterDate     String?  // YYYY-MM-DD of the Saturday generated
+
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@map("task_analytics")
+}
+
+// ============================================
+// YouTube Integration Models
+// ============================================
+
+model YouTubeFavorite {
+  id           String   @id @default(uuid())
+  userId       String
+  videoId      String
+  title        String   @db.VarChar(500)
+  thumbnail    String?  @db.Text
+  channelTitle String   @db.VarChar(500)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addedAt      DateTime @default(now())
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@map("youtube_favorites")
+}
+
+// ============================================
+// Notification Models
+// ============================================
+
+model NotificationPreference {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  journalReminderEnabled Boolean  @default(true)
+  journalReminderTime    String   @default("20:30") // 24h format
+  
+  moodReminderEnabled    Boolean  @default(true)
+  moodIntervalHours      Int      @default(2)
+  
+  aiSupportEnabled      Boolean  @default(true)
+  
+  lastMoodReminderSent   DateTime?
+  lastJournalReminderSent DateTime?
+  lastAiSupportSent      DateTime?
+  
+  timezone              String   @default("UTC")
+  dndStart              String?  @default("21:00") // Do not disturb start
+  dndEnd                String?  @default("09:00") // Do not disturb end
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================
+// Emotional Growth Model
+// ============================================
+// Stores weekly emotional growth score per user with cached breakdown.
+// One row per user per week (weekStart = Monday 00:00).
+// ============================================
+
+model EmotionalGrowth {
+  id                String   @id @default(uuid())
+  userId            String
+  weekStart         DateTime
+  score             Int
+  delta             Int?     @default(0)
+  consistencyScore  Float    @default(0)
+  engagementScore   Float    @default(0)
+  stabilityScore    Float    @default(0)
+  actionScore       Float    @default(0)
+  createdAt         DateTime @default(now())
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+  @@index([userId])
+  @@index([weekStart])
+  @@map("emotional_growth")
+}
