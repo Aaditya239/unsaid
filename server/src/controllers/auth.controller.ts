@@ -105,6 +105,7 @@ export const signup = async (
       data: {
         user,
         accessToken, // Also send in body for mobile/API clients
+        refreshToken, // Needed for cross-origin (cookies may not work)
       },
     });
   } catch (error) {
@@ -227,6 +228,7 @@ export const login = async (
           lastName: user.lastName,
         },
         accessToken,
+        refreshToken, // Needed for cross-origin (cookies may not work)
       },
     });
   } catch (error) {
@@ -323,6 +325,7 @@ export const refreshToken = async (
       message: 'Token refreshed successfully',
       data: {
         accessToken: newAccessToken,
+        refreshToken: newRefreshToken, // Needed for cross-origin
       },
     });
   } catch (error) {

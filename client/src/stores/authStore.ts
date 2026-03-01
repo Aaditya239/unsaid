@@ -109,15 +109,18 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.post<ApiResponse<{ user: User; accessToken: string }>>(
+          const response = await api.post<ApiResponse<{ user: User; accessToken: string; refreshToken?: string }>>(
             '/auth/signup',
             data
           );
 
           const { user, accessToken } = response.data.data;
 
-          // Store token for mobile/API clients
+          // Store tokens for cross-origin auth
           localStorage.setItem('accessToken', accessToken);
+          if (response.data.data.refreshToken) {
+            localStorage.setItem('refreshToken', response.data.data.refreshToken);
+          }
 
           set({
             user,
@@ -139,15 +142,18 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.post<ApiResponse<{ user: User; accessToken: string }>>(
+          const response = await api.post<ApiResponse<{ user: User; accessToken: string; refreshToken?: string }>>(
             '/auth/login',
             data
           );
 
           const { user, accessToken } = response.data.data;
 
-          // Store token for mobile/API clients
+          // Store tokens for cross-origin auth
           localStorage.setItem('accessToken', accessToken);
+          if (response.data.data.refreshToken) {
+            localStorage.setItem('refreshToken', response.data.data.refreshToken);
+          }
 
           set({
             user,
@@ -172,6 +178,7 @@ export const useAuthStore = create<AuthStore>()(
           // Continue with local logout even if server fails
         } finally {
           localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
           set({
             user: null,
             isAuthenticated: false,
@@ -190,6 +197,7 @@ export const useAuthStore = create<AuthStore>()(
           // Continue with local logout
         } finally {
           localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
           set({
             user: null,
             isAuthenticated: false,

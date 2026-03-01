@@ -94,13 +94,21 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Attempt to refresh token
-        const response = await api.post('/auth/refresh');
-        const { accessToken } = response.data.data;
+        // Attempt to refresh token — send refreshToken from localStorage for cross-origin
+        const storedRefreshToken = typeof window !== 'undefined'
+          ? localStorage.getItem('refreshToken')
+          : null;
+        const response = await api.post('/auth/refresh', {
+          refreshToken: storedRefreshToken,
+        });
+        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
 
-        // Store new token (for mobile clients)
+        // Store new tokens
         if (typeof window !== 'undefined') {
           localStorage.setItem('accessToken', accessToken);
+          if (newRefreshToken) {
+            localStorage.setItem('refreshToken', newRefreshToken);
+          }
         }
 
         // Retry original request
@@ -121,6 +129,7 @@ api.interceptors.response.use(
 
         if (typeof window !== 'undefined') {
           localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
           // Trigger logout event
           window.dispatchEvent(new CustomEvent('auth:logout'));
         }

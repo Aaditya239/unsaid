@@ -97,11 +97,15 @@ export const verifyRefreshToken = (token: string): DecodedToken => {
 // COOKIE CONFIGURATION
 // ============================================
 
+// Cross-origin requires sameSite: 'none' (Vercel frontend ↔ Render backend)
+const isProduction = process.env.NODE_ENV === 'production';
+const sameSiteSetting: 'lax' | 'none' = isProduction ? 'none' : 'lax';
+
 // Cookie options for access token (httpOnly for security)
 export const accessTokenCookieOptions = {
   httpOnly: true, // Prevents XSS attacks - cannot be accessed by JavaScript
-  secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const, // CSRF protection
+  secure: isProduction || process.env.COOKIE_SECURE === 'true',
+  sameSite: sameSiteSetting,
   maxAge: 15 * 60 * 1000, // 15 minutes in milliseconds
   domain: process.env.COOKIE_DOMAIN || undefined,
   path: '/',
@@ -110,11 +114,11 @@ export const accessTokenCookieOptions = {
 // Cookie options for refresh token (longer expiry)
 export const refreshTokenCookieOptions = {
   httpOnly: true,
-  secure: process.env.COOKIE_SECURE === 'true' || process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  secure: isProduction || process.env.COOKIE_SECURE === 'true',
+  sameSite: sameSiteSetting,
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
   domain: process.env.COOKIE_DOMAIN || undefined,
-  path: '/api/auth', // Only sent to auth routes
+  path: '/',
 };
 
 /**
