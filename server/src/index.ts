@@ -82,7 +82,7 @@ app.use(cors({
 // - Limits requests per IP address
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 5000 : parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // Increase drastically for development
+  max: process.env.NODE_ENV === 'development' ? 5000 : parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '500'), // 500 per 15 min in production
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.',
@@ -95,7 +95,7 @@ app.use('/api', limiter);
 // Stricter rate limit for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 1000 : 10, // Increase for dev
+  max: process.env.NODE_ENV === 'development' ? 1000 : 20, // 20 auth attempts per 15 min
   message: {
     success: false,
     message: 'Too many authentication attempts, please try again after 15 minutes.',
