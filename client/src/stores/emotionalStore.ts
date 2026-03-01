@@ -309,10 +309,10 @@ export const useEmotionalStore = create<EmotionalStore>()(
       try {
         // Fetch all data in parallel
         const [moodRes, streakRes, journalRes, focusRes] = await Promise.allSettled([
-          api.get('/api/mood?range=week&limit=50'),
-          api.get('/api/mood/streak'),
-          api.get('/api/journal?limit=20'),
-          api.get('/api/calm/stats'),
+          api.get('/mood?range=week&limit=50'),
+          api.get('/mood/streak'),
+          api.get('/journal?limit=20'),
+          api.get('/calm/stats'),
         ]);
 
         // Process mood data
@@ -397,7 +397,7 @@ export const useEmotionalStore = create<EmotionalStore>()(
     
     logMood: async (data) => {
       try {
-        const response = await api.post('/api/mood', {
+        const response = await api.post('/mood', {
           mood: data.mood,
           intensity: data.intensity,
           note: data.note,
@@ -429,7 +429,7 @@ export const useEmotionalStore = create<EmotionalStore>()(
         
         // Refresh streak from server
         try {
-          const streakRes = await api.get('/api/mood/streak');
+          const streakRes = await api.get('/mood/streak');
           set({
             streak: streakRes.data.data?.streak || get().streak,
             isStreakActive: streakRes.data.data?.isActive || true,
@@ -451,7 +451,7 @@ export const useEmotionalStore = create<EmotionalStore>()(
     
     completeFocusSession: async (duration, type) => {
       try {
-        await api.post('/api/calm/session', {
+        await api.post('/calm/session', {
           duration,
           sessionType: type === 'pomodoro' ? 'FOCUS' : 'BREATHE',
         });

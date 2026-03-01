@@ -239,7 +239,7 @@ export const useMoodStore = create<MoodStore>((set, get) => ({
   fetchStreak: async () => {
     set({ isLoadingStreak: true });
     try {
-      const response = await api.get('/api/mood/streak');
+      const response = await api.get('/mood/streak');
       set({
         streak: response.data.data,
         isLoadingStreak: false
