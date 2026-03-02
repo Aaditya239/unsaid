@@ -1,63 +1,77 @@
-# UNSAID - Authentication System (Week 1)
+# 🧠 UNSAID - AI-Powered Mental Wellness Platform
 
-A production-ready authentication system built with Next.js, Express, PostgreSQL, and Prisma.
+**An all-in-one mental health companion** that combines mood tracking, AI emotional support, journaling, meditation, music therapy, and task management—all in one beautiful, secure platform.
+
+**Status:** Built in 17 days (Feb 13 - Mar 2, 2026)  
+**Stack:** Next.js 14 • Express.js • PostgreSQL • Prisma • GROQ AI • TypeScript
+
+---
+
+## ✨ Key Features
+
+### 🎯 Core Wellness Features
+- **Mood Tracking** - Log emotions with detailed analytics and emotional growth insights
+- **AI Emotional Companion** - Real-time conversations with GROQ-powered AI support
+- **Smart Journaling** - Write, reflect, and get AI-powered journal insights
+- **Calm & Meditation** - Guided breathing exercises and mindfulness exercises
+- **Focus Music** - Curated YouTube playlists for focus, energy, calm, emotional support, and night
+- **Emotion-Aware Tasks** - Tasks that adapt based on your emotional state
+- **Push Notifications** - Stay motivated with timely wellness reminders
+
+### 🔒 Security & Privacy
+- **Enterprise-grade Authentication** - JWT with token refresh, auto-logout, PIN lock
+- **Password Security** - BCrypt hashing with 12 salt rounds
+- **Session Management** - Multi-device support with session revocation
+- **Account Lockout** - Protection against brute-force attacks (5 failed attempts = 15 min lockout)
+- **httpOnly Cookies** - XSS protection, CSRF protection
+
+### 💾 Data & State Management
+- **Complex Database Schema** - 15+ Prisma models tracking mood, journals, conversations, tasks, notifications
+- **Real-time Sync** - Zustand stores for optimistic updates
+- **Offline Support** - Service Worker integration for offline access
+
+---
 
 ## 📁 Project Structure
 
 ```
 Unsaid/
-├── server/                    # Express Backend
+├── server/                         # Express.js Backend
 │   ├── prisma/
-│   │   └── schema.prisma      # Database schema
+│   │   ├── schema.prisma          # 15+ models (User, Mood, Journal, AI Conversations, etc.)
+│   │   └── migrations/            # Database version control
 │   ├── src/
-│   │   ├── controllers/       # Request handlers
-│   │   │   ├── auth.controller.ts
-│   │   │   └── user.controller.ts
-│   │   ├── middleware/        # Express middleware
-│   │   │   ├── auth.middleware.ts
-│   │   │   ├── error.middleware.ts
-│   │   │   └── validate.middleware.ts
-│   │   ├── routes/            # API routes
-│   │   │   ├── auth.routes.ts
-│   │   │   └── user.routes.ts
-│   │   ├── utils/             # Utility functions
-│   │   │   ├── appError.ts
-│   │   │   ├── jwt.utils.ts
-│   │   │   ├── password.utils.ts
-│   │   │   ├── prisma.ts
-│   │   │   └── validation.ts
-│   │   └── index.ts           # Server entry point
-│   ├── package.json
-│   └── tsconfig.json
+│   │   ├── controllers/           # Request handlers (auth, mood, journal, ai, tasks, etc.)
+│   │   ├── middleware/            # Auth, error handling, validation
+│   │   ├── routes/                # API endpoints
+│   │   ├── services/              # Business logic
+│   │   ├── utils/                 # JWT, passwords, validation, error handling
+│   │   └── index.ts               # Server entry point
 │
-├── client/                    # Next.js Frontend
+├── client/                         # Next.js 14 Frontend
 │   ├── src/
-│   │   ├── app/               # App Router pages
-│   │   │   ├── auth/
-│   │   │   │   ├── login/
-│   │   │   │   └── signup/
-│   │   │   ├── dashboard/
-│   │   │   ├── layout.tsx
-│   │   │   └── page.tsx
-│   │   ├── components/
-│   │   │   ├── auth/          # Auth components
-│   │   │   │   ├── LoginForm.tsx
-│   │   │   │   ├── SignupForm.tsx
-│   │   │   │   ├── PinLockScreen.tsx
-│   │   │   │   └── ProtectedRoute.tsx
-│   │   │   ├── providers/     # Context providers
-│   │   │   └── ui/            # Reusable UI components
-│   │   ├── lib/               # Utilities
-│   │   │   ├── api.ts         # Axios client
-│   │   │   ├── utils.ts
-│   │   │   └── validations.ts
-│   │   └── stores/            # Zustand stores
-│   │       ├── authStore.ts
-│   │       └── pinLockStore.ts
-│   ├── package.json
-│   └── tailwind.config.ts
+│   │   ├── app/                   # Page Router
+│   │   │   ├── auth/              # Login, signup, PIN lock
+│   │   │   ├── dashboard/         # Home page, analytics
+│   │   │   ├── mood/              # Mood tracking & history
+│   │   │   ├── journal/           # Journaling interface
+│   │   │   ├── calm/              # Meditation & breathing
+│   │   │   ├── ai-support/        # AI companion chat
+│   │   │   ├── tasks/             # Task management
+│   │   │   ├── notifications/     # Notification center
+│   │   │   ├── profile/           # User profile & settings
+│   │   │   └── settings/          # App settings
+│   │   ├── components/            # Reusable UI components
+│   │   ├── hooks/                 # Custom hooks (useAudioPlayer, useTimer, useTheme)
+│   │   ├── stores/                # Zustand state stores
+│   │   ├── lib/                   # API client, utilities
+│   │   ├── config/                # XP rules, constants
+│   │   └── data/                  # Music playlists, static data
+│   └── public/                    # Static assets, service worker
 │
-└── README.md
+└── docs/                          # Documentation
+    ├── DEPLOYMENT.md              # Vercel + Render setup
+    └── YOUTUBE_API_SETUP.md       # YouTube API configuration
 ```
 
 ---
@@ -66,129 +80,190 @@ Unsaid/
 
 ### Prerequisites
 
-- Node.js 18+ 
-- PostgreSQL 14+
-- npm or yarn
+- **Node.js** 18+
+- **PostgreSQL** 14+
+- **npm** or **yarn**
+- **YouTube API Key** (for music playlists)
+- **GROQ API Key** (for AI companion)
 
-### 1. Database Setup
+### 1️⃣ Clone & Install Dependencies
 
 ```bash
-# Start PostgreSQL (macOS with Homebrew)
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/Unsaid.git
+cd Unsaid
+
+# Install dependencies (root, server, and client)
+npm run install:all
+```
+
+### 2️⃣ Database Setup
+
+```bash
+# Start PostgreSQL (macOS)
 brew services start postgresql
 
 # Create database
 createdb unsaid
-```
 
-### 2. Server Setup
-
-```bash
+# Navigate to server and set up database
 cd server
-
-# Install dependencies
-npm install
-
-# Copy environment file and configure
-cp .env.example .env
-# Edit .env with your database URL and secrets
-
-# Generate Prisma client
 npm run prisma:generate
-
-# Run database migrations
 npm run prisma:migrate
 
-# Start development server
-npm run dev
+cd ..
 ```
 
-### 3. Client Setup
+### 3️⃣ Environment Variables
+
+**Server** (`server/.env`):
+```bash
+# Server
+PORT=5000
+NODE_ENV=development
+
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/unsaid"
+
+# JWT Secrets (generate with: openssl rand -base64 64)
+JWT_SECRET="your-super-secret-key"
+JWT_REFRESH_SECRET="your-refresh-secret"
+JWT_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
+
+# CORS
+CLIENT_URL="http://localhost:3000"
+
+# APIs
+GROQ_API_KEY="your-groq-api-key"
+YOUTUBE_API_KEY="your-youtube-api-key"
+
+# Push Notifications
+VAPID_PUBLIC_KEY="your-vapid-public"
+VAPID_PRIVATE_KEY="your-vapid-private"
+```
+
+**Client** (`client/.env.local`):
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_APP_NAME=UNSAID
+NEXT_PUBLIC_INACTIVITY_TIMEOUT=300000
+NEXT_PUBLIC_PIN_LOCK_TIMEOUT=60000
+NEXT_PUBLIC_VAPID_PUBLIC_KEY="your-vapid-public"
+```
+
+### 4️⃣ Run Development Servers
 
 ```bash
-cd client
-
-# Install dependencies
-npm install
-
-# Copy environment file
-cp .env.example .env.local
-
-# Start development server
+# From root directory - runs both servers concurrently
 npm run dev
+
+# OR separately:
+npm run dev:server    # Terminal 1
+npm run dev:client    # Terminal 2
 ```
 
-### 4. Access the Application
+### 5️⃣ Access the Application
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000/api
-- Health check: http://localhost:5000/api/health
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:5000/api
+- **Health Check:** http://localhost:5000/api/health
+- **Prisma Studio:** `cd server && npm run prisma:studio`
 
 ---
 
-## 🔐 Security Implementation
+## 🛠️ Tech Stack
 
-### Password Security
-
-```typescript
-// BCrypt hashing with 12 salt rounds (12 = ~250ms per hash)
-const SALT_ROUNDS = 12;
-const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
-// Password requirements:
-// - Minimum 8 characters
-// - At least 1 uppercase letter
-// - At least 1 lowercase letter
-// - At least 1 number
-// - At least 1 special character
-```
-
-### JWT Token Strategy
-
-| Token Type | Storage | Expiry | Purpose |
-|------------|---------|--------|---------|
-| Access Token | httpOnly Cookie | 15 minutes | API authentication |
-| Refresh Token | httpOnly Cookie + Database | 7 days | Token renewal |
-
-**Why httpOnly Cookies?**
-- Cannot be accessed by JavaScript (XSS immune)
-- Automatically sent with requests
-- Works seamlessly with CORS
-
-```typescript
-// Cookie configuration
-const accessTokenCookieOptions = {
-  httpOnly: true,      // Not accessible via JavaScript
-  secure: true,        // HTTPS only (production)
-  sameSite: 'lax',     // CSRF protection
-  maxAge: 15 * 60 * 1000, // 15 minutes
-};
-```
-
-### Token Refresh Flow
-
-```
-1. Access token expires (401 response)
-2. Client automatically calls /api/auth/refresh
-3. Server validates refresh token
-4. Old refresh token is revoked (rotation)
-5. New tokens are issued
-6. Original request is retried
-```
-
-### Account Lockout Protection
-
-```typescript
-// After 5 failed login attempts:
-// - Account is locked for 15 minutes
-// - User receives lockout message
-// - Counter resets on successful login
-```
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | Next.js 14, TypeScript, Tailwind CSS, Zustand |
+| **Backend** | Express.js, Node.js, TypeScript |
+| **Database** | PostgreSQL, Prisma ORM |
+| **AI** | GROQ API (real-time inference) |
+| **APIs** | YouTube Data API, Web Push API |
+| **Auth** | JWT, bcrypt, httpOnly cookies |
+| **State** | Zustand (client), Context API |
+| **Deployment** | Vercel (frontend), Render (backend) |
 
 ---
 
-## 📡 API Endpoints
+## 🎨 Key Implementation Highlights
 
-### Authentication Routes
+### 🤖 AI Integration
+- Real-time conversations with GROQ LLaMA 2
+- Emotion-aware responses
+- Session-based conversation history
+- Streaming responses for better UX
+
+### 📊 Mood Tracking
+- Daily mood logging with intensity tracking
+- Emotional growth analytics
+- Trend visualization
+- Personalized insights
+
+### 🎵 Music Therapy
+- YouTube API integration for curated playlists
+- 5 playlist categories (Calm, Emotional, Energy, Focus, Night)
+- Integrated audio player with favorites
+- Offline music support via service worker
+
+### 📝 AI-Powered Journaling
+- Rich text journaling interface
+- Auto-save functionality
+- AI-generated reflection prompts
+- Emotion tagging and search
+
+### ⚡ Performance & UX
+- Optimistic updates with Zustand
+- Server-side rendering with Next.js
+- Image optimization
+- Responsive design (mobile-first)
+
+---
+
+## 🔐 Security Architecture
+
+### Authentication Flow
+1. User signs up with email & password
+2. Password hashed with bcrypt (12 salt rounds)
+3. Access token (15 min) + Refresh token (7 days) issued
+4. Tokens stored in httpOnly cookies
+5. Auto-logout after 5 minutes of inactivity
+6. Optional PIN lock for additional security
+
+### Security Features Implemented
+```typescript
+✅ httpOnly Cookies         // XSS protection
+✅ CSRF Token Rotation      // CSRF protection
+✅ Account Lockout          // Brute-force protection (5 attempts)
+✅ Rate Limiting            // 100 req/15min for general, 10 req/15m for auth
+✅ Input Validation         // Zod schema validation
+✅ SQL Injection Prevention  // Prisma ORM parameterized queries
+✅ Helmet Security Headers  // CSP, X-Frame-Options, etc.
+✅ Password Requirements    // Min 8 chars, uppercase, lowercase, number, special
+✅ Session Management       // Multi-device support with revocation
+✅ JWT Refresh Rotation     // Old tokens auto-revoked on refresh
+```
+
+### PIN Lock System
+- Optional 4-digit PIN
+- Activates after 1 minute of inactivity
+- Locks when tab loses focus
+- 5 failed attempts = 5 minute lockout
+- Does NOT affect backend session validity
+
+### Token Strategy
+
+| Token | Storage | Duration | Rotation |
+|-------|---------|----------|----------|
+| Access | httpOnly Cookie + DB | 15 minutes | Used for API calls |
+| Refresh | httpOnly Cookie + DB | 7 days | Rotated on each use |
+
+---
+
+## 📡 API Documentation
+
+### Authentication Endpoints
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
@@ -199,268 +274,209 @@ const accessTokenCookieOptions = {
 | POST | `/api/auth/refresh` | ❌ | Refresh access token |
 | GET | `/api/auth/me` | ✅ | Get current user |
 
-### User Routes (Protected)
+### Wellness Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users/profile` | Get user profile |
-| PATCH | `/api/users/profile` | Update profile |
-| POST | `/api/users/change-password` | Change password |
-| GET | `/api/users/sessions` | List active sessions |
-| DELETE | `/api/users/sessions/:id` | Revoke session |
+| Feature | Endpoints |
+|---------|-----------|
+| **Mood** | POST `/api/mood`, GET `/api/mood`, GET `/api/mood/analytics` |
+| **Journal** | POST `/api/journal`, GET `/api/journal`, GET `/api/journal/:id` |
+| **AI Chat** | POST `/api/ai/chat`, GET `/api/ai/conversations` |
+| **Tasks** | POST `/api/tasks`, GET `/api/tasks`, PATCH `/api/tasks/:id` |
+| **Music** | GET `/api/music/playlists`, POST `/api/music/favorites` |
+| **Notifications** | GET `/api/notifications`, PATCH `/api/notifications/:id` |
 
-### Request/Response Examples
+### Example: Mood Tracking
 
-**Signup:**
 ```bash
-POST /api/auth/signup
-Content-Type: application/json
+# Log a mood entry
+curl -X POST http://localhost:5000/api/mood \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{
+    "emotion": "anxious",
+    "intensity": 7,
+    "notes": "Got bad feedback at work",
+    "triggers": ["work", "stress"]
+  }'
 
-{
-  "email": "user@example.com",
-  "password": "SecurePass123!",
-  "firstName": "John",
-  "lastName": "Doe"
-}
+# Get mood analytics
+curl http://localhost:5000/api/mood/analytics \
+  -b cookies.txt
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "user": {
-      "id": "uuid",
-      "email": "user@example.com",
-      "firstName": "John",
-      "lastName": "Doe"
-    },
-    "accessToken": "eyJhbGciOiJIUzI1NiIs..."
-  }
-}
+### Example: AI Chat
+
+```bash
+# Send message to AI companion
+curl -X POST http://localhost:5000/api/ai/chat \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{
+    "message": "I am feeling overwhelmed",
+    "conversationId": "optional-id"
+  }'
 ```
 
 ---
 
-## 🛡️ Security Best Practices
+## 🛡️ Best Practices & Architecture Decisions
 
-### 1. Environment Variables
+### Why httpOnly Cookies?
+- ✅ XSS Immune: JavaScript cannot access them
+- ✅ Auto-sent: No manual Authorization header needed  
+- ✅ CSRF Protection: With sameSite attribute
+- ✅ Mobile Ready: Works with Bearer tokens on request headers too
 
-```bash
-# Generate secure secrets
-openssl rand -base64 64
+### Database Design
+- **15+ Prisma Models**: User, Mood, Journal, AIConversation, Task, Notification, etc.
+- **Normalized Schema**: Prevents data duplication
+- **Soft Deletes**: Using `deletedAt` field for data recovery
+- **Indexes**: On frequently queried fields for performance
+- **Migrations**: Version-controlled schema changes
 
-# Never commit .env files
-# Use different secrets for each environment
-```
+### State Management
+- **Zustand**: Client-side stores for auth, mood, journal, AI, music, settings
+- **Optimistic Updates**: Fast user feedback
+- **Persistence**: LocalStorage sync for offline capability
 
-### 2. CORS Configuration
-
-```typescript
-const corsOptions = {
-  origin: process.env.CLIENT_URL,  // Whitelist your frontend
-  credentials: true,                // Allow cookies
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-};
-```
-
-### 3. Rate Limiting
-
-```typescript
-// General API: 100 requests per 15 minutes
-// Auth routes: 10 requests per 15 minutes (stricter)
-```
-
-### 4. Input Validation
-
-- All inputs validated with Zod schemas
-- SQL injection prevented by Prisma ORM
-- XSS prevented by proper encoding
-
-### 5. Headers Security (Helmet)
-
-```typescript
-// Enabled security headers:
-// - Content-Security-Policy
-// - X-DNS-Prefetch-Control
-// - X-Frame-Options
-// - X-Content-Type-Options
-// - Referrer-Policy
-// - X-Permitted-Cross-Domain-Policies
-```
+### Error Handling
+- **Custom Error Class**: `AppError` with status codes and messages
+- **Global Error Middleware**: Centralized error handling
+- **Client-side Error Boundaries**: Graceful degradation
 
 ---
 
-## ⏱️ Auto-Logout & PIN Lock
+## 🧪 Testing & Deployment
 
-### Auto-Logout (Backend + Frontend)
-
-```typescript
-// Frontend: Tracks user activity
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-
-// Activity events monitored:
-// - mousedown, mousemove, keydown
-// - scroll, touchstart, click
-
-// On timeout: Calls logout API, clears tokens
-```
-
-### PIN Lock (Frontend Only)
-
-```typescript
-// Features:
-// - 4-digit PIN entry
-// - Locks after 1 minute of inactivity
-// - Locks when browser tab loses focus
-// - 5 failed attempts = 5 minute lockout
-// - Does NOT affect backend authentication
-```
-
-**PIN Lock Flow:**
-```
-1. User enables PIN in dashboard
-2. After inactivity → Lock screen appears
-3. User enters PIN → App unlocks
-4. Backend session remains valid throughout
-```
-
----
-
-## 🔄 Database Migrations
+### Local Testing
 
 ```bash
-# Create new migration
-npx prisma migrate dev --name description_of_change
-
-# Apply migrations (production)
-npx prisma migrate deploy
-
-# Reset database (development only!)
-npx prisma migrate reset
-
-# View database in browser
-npx prisma studio
-```
-
----
-
-## 🔧 Configuration Reference
-
-### Server Environment (.env)
-
-```bash
-# Server
-PORT=5000
-NODE_ENV=development
-
-# Database
-DATABASE_URL="postgresql://user:pass@localhost:5432/unsaid"
-
-# JWT (use strong random values!)
-JWT_SECRET="your-secret-here"
-JWT_REFRESH_SECRET="another-secret-here"
-JWT_EXPIRES_IN="15m"
-JWT_REFRESH_EXPIRES_IN="7d"
-
-# CORS
-CLIENT_URL="http://localhost:3000"
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
-### Client Environment (.env.local)
-
-```bash
-# API
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-
-# Timeouts
-NEXT_PUBLIC_INACTIVITY_TIMEOUT=300000
-NEXT_PUBLIC_PIN_LOCK_TIMEOUT=60000
-```
-
----
-
-## 📱 Mobile App Support
-
-The API is designed for easy mobile integration:
-
-1. **Token Storage**: For mobile apps, store tokens in secure storage (Keychain/Keystore)
-2. **Authorization Header**: Send token as `Bearer` in `Authorization` header
-3. **Refresh Logic**: Same refresh flow works for mobile
-
-```typescript
-// Mobile client example
-const api = axios.create({
-  baseURL: 'https://api.unsaid.com',
-  headers: {
-    Authorization: `Bearer ${accessToken}`,
-  },
-});
-```
-
----
-
-## 🧪 Testing the API
-
-```bash
-# Health check
+# Test health endpoint
 curl http://localhost:5000/api/health
 
-# Signup
+# Test signup
 curl -X POST http://localhost:5000/api/auth/signup \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test123!@#"}'
+  -d '{
+    "email": "test@example.com",
+    "password": "TestPass123!",
+    "firstName": "Test",
+    "lastName": "User"
+  }'
 
-# Login
+# Test login
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -c cookies.txt \
-  -d '{"email":"test@example.com","password":"Test123!@#"}'
+  -d '{
+    "email": "test@example.com",
+    "password": "TestPass123!"
+  }'
 
-# Get profile (with cookie)
-curl http://localhost:5000/api/auth/me \
-  -b cookies.txt
+# Test protected endpoint
+curl http://localhost:5000/api/auth/me -b cookies.txt
 ```
+
+### Deployment
+
+See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for:
+- ✅ Vercel frontend deployment
+- ✅ Render backend + PostgreSQL setup
+- ✅ Environment variables configuration
+- ✅ YouTube API setup
+- ✅ GROQ API integration
 
 ---
 
 ## 🚨 Troubleshooting
 
-### "CORS error"
-- Ensure `CLIENT_URL` in server `.env` matches frontend URL
-- Check `credentials: true` in CORS config
-
-### "Token expired" constantly
-- Check system clock synchronization
-- Verify `JWT_EXPIRES_IN` is set correctly
-
-### "Cannot connect to database"
-- Verify PostgreSQL is running
-- Check `DATABASE_URL` format
-- Run `npx prisma db push` to sync schema
-
-### "Prisma client not found"
-- Run `npm run prisma:generate` in server directory
+| Issue | Solution |
+|-------|----------|
+| **CORS error** | Ensure `CLIENT_URL` in `.env` matches frontend URL |
+| **Token expired constantly** | Check system clock sync, verify `JWT_EXPIRES_IN` |
+| **Cannot connect to database** | Run `brew services start postgresql`, verify `DATABASE_URL` |
+| **Prisma client not found** | Run `npm run prisma:generate` in server directory |
+| **GROQ API errors** | Verify `GROQ_API_KEY` is valid and has quota |
+| **YouTube playlists not loading** | Check `YOUTUBE_API_KEY` has YouTube Data API v3 enabled |
+| **PIN lock not working** | Clear browser cookies, refresh page |
+| **Service worker errors** | Clear browser cache, reload in incognito mode |
 
 ---
 
-## 📝 Next Steps (Week 2+)
+## 📊 Database Schema Overview
 
-- [ ] Email verification
-- [ ] Password reset flow
+**Key Models:**
+- **User** - Email, password hash, profile info, preferences
+- **Mood** - Emotion, intensity, triggers, timestamps
+- **Journal** - Content, emotion tags, AI reflections
+- **AIConversation** - Messages, session tracking, emotional context
+- **Task** - Title, emotion-aware priority, completion status
+- **Notification** - Type, status, user subscription
+- **MusicFavorite** - Bookmarked playlists
+- **UserStreak** - Daily engagement tracking
+- **EmotionalGrowth** - Growth tracking & statistics
+
+---
+
+## 📈 Features Built in 17 Days
+
+- [x] Complete auth system (signup, login, token refresh, logout)
+- [x] PIN lock mechanism
+- [x] Auto-logout on inactivity
+- [x] Mood tracking and analytics
+- [x] Journaling with AI integration
+- [x] AI emotional companion
+- [x] Music therapy with YouTube API
+- [x] Task management with emotion awareness
+- [x] Push notifications
+- [x] Service worker for offline support
+- [x] Responsive mobile design
+- [x] Dark/light theme support
+- [x] Security hardening (rate limiting, input validation, helmet)
+- [x] Database migrations
+- [x] Deployment configs
+
+---
+
+## 🔮 Future Enhancements
+
+- [ ] Email verification & password reset
 - [ ] OAuth (Google, GitHub)
 - [ ] Two-factor authentication
-- [ ] Session management UI
-- [ ] Activity logging
-- [ ] Account deletion
+- [ ] Advanced mood analytics with charts
+- [ ] Guided breathing exercises with videos
+- [ ] Social features (share journals, group meditation)
+- [ ] Habit tracking
+- [ ] Therapist notes (for professional use)
+- [ ] Mobile app (React Native)
+- [ ] Voice journaling
+- [ ] Real-time multiplayer meditation sessions
+
+---
+
+## 📚 Learning Resources Used
+
+- Next.js 14 App Router documentation
+- Prisma ORM best practices
+- JWT authentication patterns
+- GROQ API integration
+- YouTube Data API v3
+- Web Push API
+- TypeScript advanced patterns
+
+---
+
+## 🤝 Contributing
+
+This is a personal project, but feel free to:
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
 
 ---
 
 ## 📄 License
 
-MIT License - feel free to use this code for your projects.
+MIT License - Feel free to use this code for personal or commercial projects.
+
+**Built with ❤️ for mental wellness**
